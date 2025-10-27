@@ -1,0 +1,64 @@
+boot.ps1
+
+
+cd ~
+
+Set-Location $env:temp
+
+$progressPreference = 'silentlyContinue'
+#Write-Host "Installing WinGet PowerShell module from PSGallery..."
+#Install-PackageProvider -Name NuGet -Force | Out-Null
+#Install-Module -Name Microsoft.WinGet.Client -Force -Repository PSGallery | Out-Null
+#Write-Host "Using Repair-WinGetPackageManager cmdlet to bootstrap WinGet..."
+#Repair-WinGetPackageManager -Force -Latest
+#Write-Host "Done."
+
+winget install --id Microsoft.DotNet.SDK.9 --source winget --log C:\temp\install.log -h
+winget install Microsoft.PowerShell -h --source winget --accept-source-agreements
+winget install Python.Python.3.13 -h --source winget
+winget install Git.Git -h --source winget
+winget install GitHub.cli -h --source winget
+winget install Microsoft.VisualStudioCode -h --source winget
+winget install OpenJS.NodeJS -h --source winget
+winget install DenoLand.Deno -h --source winget
+
+$paths = ,"C:\Program Files\dotnet\"
+$paths += "%HOME%\.dotnet\tools"
+$paths += "%LOCALAPPDATA%\Programs\Microsoft VS Code\bin"
+$paths += "%LOCALAPPDATA%\Microsoft\WindowsApps"
+$paths += "C:\Program Files\PowerShell\7\"
+$paths += "C:\Program Files\Git\bin"
+
+$path = [Environment]::GetEnvironmentVariable("PATH", [EnvironmentVariableTarget]::Machine) -split ";"
+$path += [Environment]::GetEnvironmentVariable("PATH", [EnvironmentVariableTarget]::User) -split ";"
+$userPath = [Environment]::GetEnvironmentVariable("PATH", [EnvironmentVariableTarget]::User)
+foreach ($p in $paths) {
+  if ($path -notcontains [Environment]::ExpandEnvironmentVariables($p)) {
+    $userPath += ";$p"
+  }
+}
+
+[Environment]::SetEnvironmentVariable("PATH", $userPath, [EnvironmentVariableTarget]::User)
+$env:PATH = [Environment]::GetEnvironmentVariable("PATH", [EnvironmentVariableTarget]::Machine) + ";" + 
+            [Environment]::GetEnvironmentVariable("PATH", [EnvironmentVariableTarget]::User)
+
+python -m pip install jupyterlab --user
+dotnet nuget add source https://api.nuget.org/v3/index.json -n nuget.org
+dotnet nuget enable source nuget.org
+dotnet tool install -g Microsoft.dotnet-interactive
+dotnet interactive jupyter install
+code --install-extension ms-python.python
+code --install-extension ms-python.vscode-pylance
+code --install-extension ms-python.debugpy
+code --install-extension ms-python.vscode-python-envs
+code --install-extension ms-toolsai.jupyter
+code --install-extension ms-toolsai.vscode-jupyter-cell-tags
+code --install-extension ms-toolsai.jupyter-keymap
+code --install-extension ms-toolsai.jupyter-renderers
+code --install-extension ms-toolsai.vscode-jupyter-slideshow
+code --install-extension denoland.vscode-deno
+code --install-extension ms-dotnettools.dotnet-interactive-vscode
+code --install-extension ms-vscode.powershell
+code --install-extension tomoki1207.pdf
+code --install-extension dbaeumer.vscode-eslint
+#start "code"
